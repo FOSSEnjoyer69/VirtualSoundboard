@@ -1,0 +1,30 @@
+body {
+    color: white;
+    background-color: black;
+    text-align: center;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* Creates 10 equal columns */
+    grid-gap: 10px; /* Adds space between grid items */
+    padding: 10px;
+    border: 10px gray dashed;
+}
+
+.grid-container.dragover {
+    background-color: #f0f0f0;
+}
+
+.grid-item {
+    background-color: #4CAF50;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    font-size: 20px;
+}
+
+footer
+{
+    background-color: rgb(25, 25, 25);
+}

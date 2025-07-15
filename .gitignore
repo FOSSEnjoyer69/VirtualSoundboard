@@ -1,0 +1,87 @@
+Audio Clips/*
+
+# Build results
+bin/
+obj/
+out/
+[Ll]og/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Visual Studio files
+.vscode/
+.vs/
+*.ncb
+*.sdf
+*.opensdf
+
+# Rider files
+.idea/
+*.sln.iml
+
+# ASP.NET
+appsettings.*.json
+appsettings.Development.json
+secrets.json
+
+# Dotnet CLI
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+*.psmdcp
+.nuget/
+packages/
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Other common
+*.log
+*.tlog
+*.cache
+*.dbmdl
+*.bak
+*.tmp
+*.swp
+
+# Test results
+TestResults/
+*.TestResults/
+*.coverage
+*.coveragexml
+*.codecoverage
+
+# Reports
+*.xml
+*.html
+*.json
+coverage/
+Reports/
+
+# Local history
+.localhistory/
+
+# Mac and Linux files
+.DS_Store
+*.swp
+*.swo
+
+# Windows thumbnails
+Thumbs.db
+
+# JetBrains Rider / CLion
+.idea/

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HttpMultipartParser" Version="9.0.0" />
+    <PackageReference Include="Mp3Sharp" Version="1.0.5" />
+    <PackageReference Include="PortAudioSharp2" Version="1.0.4" />
+    <PackageReference Include="scottplot" Version="5.0.55" />
+  </ItemGroup>
+
+</Project>
