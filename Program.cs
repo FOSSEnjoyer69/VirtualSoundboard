@@ -12,8 +12,8 @@ public class Program
 {
     private static Server m_server = new Server();
 
-    private static AudioMixer audioMixer = new AudioMixer();
-    private static AudioOutputDevice audioOutputDevice = new AudioOutputDevice(audioMixer.AudioBuffer);
+    private static AudioOutputDevice audioOutputDevice = new AudioOutputDevice();
+    private static AudioMixer audioMixer = new AudioMixer(audioOutputDevice);
 
     public static Dictionary<string, AudioPlayer> audioClipDic = new();
 
@@ -193,11 +193,19 @@ public class Program
 
         try
         {
-            Console.WriteLine((int)audioMixer.OutputDevice.Info.defaultSampleRate);
-
-            AudioClip audioClip = AudioClip.FromMP3File(soundFile, (int)audioMixer.OutputDevice.Info.defaultSampleRate);
-            AudioPlayer audioPlayer = new AudioPlayer(audioClip, audioOutputDevice);
-            audioPlayer.Play();
+            //Try to get the audio player from the cache
+            if (audioClipDic.TryGetValue(soundFile, out AudioPlayer existingPlayer))
+            {
+                existingPlayer.Play();
+            }
+            else
+            {
+                // Create a new AudioClip and AudioPlayer
+                AudioClip clip = AudioClip.FromMP3File(soundFile);
+                AudioPlayer player = new AudioPlayer(clip, audioMixer);
+                audioClipDic[soundFile] = player; // Cache the player
+                player.Play();
+            }
 
             byte[] buffer = Encoding.UTF8.GetBytes($"Sound played: {soundFile}");
             response.ContentLength64 = buffer.Length;
