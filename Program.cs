@@ -12,6 +12,7 @@ public class Program
 {
     private static Server m_server = new Server();
 
+    private static AudioInputDevice audioInputDevice = new AudioInputDevice();
     private static AudioOutputDevice audioOutputDevice = new AudioOutputDevice();
     private static AudioMixer audioMixer = new AudioMixer(audioOutputDevice);
 
@@ -19,6 +20,8 @@ public class Program
 
     public static async Task Main(string[] args)
     {
+        audioMixer.sources.Add(audioInputDevice);
+
         m_server.AddIndexPage("WebUi/main.html");
         m_server.LinkFile("WebUi/style.css", "style.css");
         m_server.LinkFile("WebUi/script.js", "script.js");
