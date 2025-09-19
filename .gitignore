@@ -1,0 +1,72 @@
+Audio Clips/*
+
+# Build results
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+
+# Avalonia build cache
+*.axaml.g.cs
+*.g.cs
+*.g.i.cs
+
+# Avalonia resources
+*.assets.cache
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+.history/
+*.code-workspace
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Others
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+# Test results
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish
+publish/
+artifacts/
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# DotCover
+*.dotCover
+
+# Rider cache
+.idea/
+.idea_modules/
+
+# Local tools
+tools/

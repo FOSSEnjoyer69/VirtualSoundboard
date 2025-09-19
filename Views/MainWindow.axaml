@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VirtualSoundboard.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="VirtualSoundboard.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="VirtualSoundboard">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <!-- ✅ Only one root content element (a panel) -->
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label>Input Devices</Label>
+            <StackPanel x:Name="InputDeviceParent" Orientation="Horizontal"/>
+            <Button x:Name="AddInputDeviceButton">+</Button>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal"> 
+            <Label>Output Devices</Label>
+            <StackPanel x:Name="OutputDeviceParent" Orientation="Horizontal"/>
+            <Button  x:Name="AddOutputDeviceButton">+</Button>
+        </StackPanel>
+        <WrapPanel x:Name="SoundBoard" Orientation="Horizontal" HorizontalAlignment="Stretch">
+        </WrapPanel>
+    </StackPanel>
+
+</Window>

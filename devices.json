@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "default",
+    "IsInput": true,
+    "Volume": 1,
+    "IsMuted": true,
+    "Tags": []
+  },
+  {
+    "Name": "default",
+    "IsInput": false,
+    "Volume": 1,
+    "IsMuted": false,
+    "Tags": []
+  }
+]
