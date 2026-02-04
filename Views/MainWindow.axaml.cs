@@ -13,10 +13,8 @@ using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Threading;
 using CSharpAlgorithms;
 using CSharpAlgorithms.Audio;
-using CSharpAlgorithms.Files;
-using CSharpAlgorithms.GUI;
+using CSharpAlgorithms.Collection;
 using CSharpAlgorithms.Interfaces;
-using CSharpAlgorithms.UUID;
 using PortAudioSharp;
 
 namespace VirtualSoundboard.Views;
@@ -108,7 +106,6 @@ public partial class MainWindow : Window
                     CSharpAlgorithms.Debug.Print(AudioDevice.ActiveDevices);
                     foreach (AudioDevice device in DictionaryUtils.GetValues(AudioDevice.ActiveDevices))
                     {
-
                         string playerId = $"{device.Info.name} - {clip.Name}";
                         if (audioPlayerDic.TryGetValue(playerId, out AudioPlayer player))
                         {
@@ -170,31 +167,7 @@ public partial class MainWindow : Window
 
     void AddNewDevice()
     {
-        string uuid = UUIDUtils.CreateUUID();
-
-        ComboBox deviceNameDropdown = new ComboBox();
-        GUIUutils.Setup(deviceNameDropdown, AudioUtils.GetInputDeviceNames(), "default", null, (string newDeviceName) =>
-        {
-
-        });
-
-        Slider volumeSlider = new Slider { Minimum = 0, Maximum = 1, Value = 1, Width = 100, Margin = new Avalonia.Thickness(2) };
-        volumeSlider.PropertyChanged += (sender, e) =>
-        {
-            if (e.Property == Slider.ValueProperty)
-            {
-
-            }
-        };
-
-        CheckBox muteCheckbox = new CheckBox { Content = "Mute", Margin = new Avalonia.Thickness(2) };
-        muteCheckbox.PropertyChanged += (sender, e) =>
-        {
-            if (e.Property == CheckBox.IsCheckedProperty)
-            {
-
-            }
-        };
+        
     }
 
     private void OnExit(object? sender, EventArgs e)
