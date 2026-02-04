@@ -1,9 +1,9 @@
 [
   {
-    "Name": "default",
+    "Name": "HDA Intel PCH: ALC1220 Alt Analog (hw:0,2)",
     "IsInput": true,
     "Volume": 1,
-    "IsMuted": true,
+    "IsMuted": false,
     "Tags": []
   },
   {
