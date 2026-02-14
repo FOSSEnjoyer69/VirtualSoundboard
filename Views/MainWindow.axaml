@@ -7,9 +7,7 @@
         x:Class="VirtualSoundboard.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="VirtualSoundboard"
-        DragDrop.AllowDrop="True"
-        DragDrop.Drop="OnDrop">
+        Title="VirtualSoundboard">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -20,11 +18,13 @@
         <StackPanel Orientation="Horizontal">
             <Label>Devices</Label>
             <StackPanel x:Name="DeviceParent" Orientation="Horizontal"/>
-            <!-- <Button x:Name="AddInputDeviceButton">+</Button> -->
+            <StackPanel Orientation="Vertical">
+                <ComboBox x:Name="NewDeviceDropdown" Width="200"/>
+                <Button x:Name="AddDeviceButton">+</Button>
+            </StackPanel>
         </StackPanel>
         <Border Padding="16" Margin="12" CornerRadius="8" BorderThickness="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"> 
             <WrapPanel x:Name="SoundBoard" Orientation="Horizontal" HorizontalAlignment="Stretch"></WrapPanel>
         </Border>
     </StackPanel>
-
 </Window>

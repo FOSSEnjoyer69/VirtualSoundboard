@@ -4,4 +4,5 @@ namespace VirtualSoundboard.ViewModels;
 
 public class ViewModelBase : ObservableObject
 {
+    
 }
