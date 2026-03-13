@@ -1,3 +1,14 @@
 [
-  {}
+  {
+    "Name": "default",
+    "InputVolume": 0.948194,
+    "OutputVolume": 1,
+    "IsMuted": false
+  },
+  {
+    "Name": "USB Audio Device: - (hw:3,0)",
+    "InputVolume": 1,
+    "OutputVolume": 1,
+    "IsMuted": false
+  }
 ]

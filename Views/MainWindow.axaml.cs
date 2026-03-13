@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -17,7 +18,7 @@ using CSharpAlgorithms.Audio;
 using CSharpAlgorithms.Collection;
 using CSharpAlgorithms.GC;
 using CSharpAlgorithms.Interfaces;
-using PortAudioSharp;
+using Debug = CSharpAlgorithms.Debug;
 
 namespace VirtualSoundboard.Views;
 
@@ -40,12 +41,15 @@ public partial class MainWindow : Window
             keepAlive = true,
         };
 
+        //Ensure 'Audio Clips' directory exists
+        if (!audioClipDir.Exists)
+            audioClipDir.Create();
+
         LoadDirectory(audioClipDir);
+        LoadState();
         UpdateNewDeviceDropdown();
 
         Closed += OnExit;
-
-        //AddNewDevice("default");
 
         AddDeviceButton.Click += (sender, e) => AddNewDevice(NewDeviceDropdown.SelectedItem as string);
     }
@@ -145,6 +149,8 @@ public partial class MainWindow : Window
                                     playPauseButton.Content = "!";
                             });
                         };
+
+                        Console.WriteLine($"playing {playerId}");
                         audioPlayerDic[playerId] = newPlayer;
 
                         device.audioPlayers.Add(newPlayer);
@@ -181,104 +187,179 @@ public partial class MainWindow : Window
 
         UpdateNewDeviceDropdown();
 
-        if(AudioDevice.GetDevice(name, out AudioDevice device));
+        if(AudioDevice.GetDevice(name, out AudioDevice device))
             AddNewDevice(device);
     }
     void AddNewDevice(AudioDevice device)
     {
         ComboBox nameDropdown = new ComboBox()
         {
-            SelectedValue = device.Info.name,
-            ItemsSource = AudioUtils.GetDeviceNames(),
-        };
-
-        nameDropdown.SelectionChanged += (sender, e) =>
-        {
-            if (nameDropdown.SelectedValue is string selectedName)
-            {
-                if(!device.SetDevice(selectedName));
-                {
-                    nameDropdown.SelectedValue = device.Info.name;
-                }
-            }
+            Name = "name",
         };
 
         StackPanel optionsPanel = new StackPanel { Orientation = Orientation.Vertical };
+        StackPanel inputOptionsPanel = new StackPanel 
+        { 
+            Name = "input-options-panel",
+            Orientation = Orientation.Vertical 
+        };
 
-        if (device.InputChannelCount > 0)
+        StackPanel outputOptionsPanel = new StackPanel 
+        { 
+            Name = "output-options-panel",
+            Orientation = Orientation.Vertical 
+            };
+
+        optionsPanel.Children.Add(inputOptionsPanel);
+        optionsPanel.Children.Add(outputOptionsPanel);
+
+        CheckBox enableInput = new CheckBox 
+        { 
+            Name = "enable-input",
+            Content = "Enable Input", 
+            Margin = new Avalonia.Thickness(5), 
+        };
+
+        inputOptionsPanel.Children.Add(enableInput);
+
+        Slider inputVolumeSlider = new Slider 
+        { 
+            Name = "input-volume-slider",
+            Minimum = 0, 
+            Maximum = 10, 
+            Margin = new Avalonia.Thickness(5) 
+        };
+        inputOptionsPanel.Children.Add(inputVolumeSlider);
+
+        CheckBox enableOutput = new CheckBox 
+        { 
+            Name = "enable-output",
+            Content = "Enable Output", 
+            Margin = new Avalonia.Thickness(5), 
+        };
+        outputOptionsPanel.Children.Add(enableOutput);
+
+        StackPanel outputDevicesPanel = new StackPanel 
+        { 
+            Name = "output-devices-panel",
+            Orientation = Orientation.Vertical 
+        };
+        outputOptionsPanel.Children.Add(outputDevicesPanel);
+
+        StackPanel devicePanel = new StackPanel
         {
-            StackPanel inputOptionsPanel = new StackPanel { Orientation = Orientation.Vertical };
-            optionsPanel.Children.Add(inputOptionsPanel);
-
-            CheckBox enableInput = new CheckBox 
-            { 
-                Content = "Enable Input", 
-                Margin = new Avalonia.Thickness(5), 
-                IsChecked = device.IsInputMuted == false
-            };
-
-            inputOptionsPanel.Children.Add(enableInput);
-
-            Slider inputVolumeSlider = new Slider 
-            { 
-                Minimum = 0, 
-                Maximum = 10, 
-                Value = device.InputVolume, 
-                Margin = new Avalonia.Thickness(5) 
-            };
-            inputOptionsPanel.Children.Add(inputVolumeSlider);
-
-            inputVolumeSlider.PropertyChanged += (sender, e) =>
-            {
-                device.SetInputVolume((float)inputVolumeSlider.Value);
-            };
-        }
-
-        if (device.OutputChannelCount > 0)
-        {
-            StackPanel outputOptionsPanel = new StackPanel { Orientation = Orientation.Vertical };
-            optionsPanel.Children.Add(outputOptionsPanel);
-
-            CheckBox enableOutput = new CheckBox 
-            { 
-                Content = "Enable Output", 
-                Margin = new Avalonia.Thickness(5), 
-                IsChecked = device.IsOutputMuted == false 
-            };
-            enableOutput.PropertyChanged += (sender, e) =>
-            {
-                device.IsOutputMuted = !enableOutput.IsChecked.GetValueOrDefault();
-            };
-            outputOptionsPanel.Children.Add(enableOutput);
-
-            if (device.InputChannelCount > 0)
-            {
-                CheckBox playbackInput = new CheckBox 
-                { 
-                    Content = "Playback Input", 
-                    Margin = new Avalonia.Thickness(5), 
-                    IsChecked = device.IsPlayingInput
-                };
-                playbackInput.PropertyChanged += (sender, e) =>
-                {
-                    device.IsPlayingInput = playbackInput.IsChecked.GetValueOrDefault();
-                };
-
-                outputOptionsPanel.Children.Add(playbackInput);
-            }
-        }
-
-        ListBox inputDeviceListBox = new ListBox { Margin = new Avalonia.Thickness(5) };
-
-        DeviceParent.Children.Add(new StackPanel
-        {
+            Name = device.Info.name,
+            Classes = {"AudioDevice"},
             Children =
             {
                 nameDropdown,
                 optionsPanel,
-                inputDeviceListBox
             }
-        });
+        };
+
+        NameScope scope = new NameScope();
+        NameScope.SetNameScope(devicePanel, scope);
+
+        scope.Register("name", nameDropdown);
+        scope.Register("input-options-panel", inputOptionsPanel);
+        scope.Register("output-options-panel", outputOptionsPanel);
+        scope.Register("enable-input", enableInput);
+        scope.Register("enable-output", enableOutput);
+        scope.Register("input-volume-slider", inputVolumeSlider);
+        scope.Register("output-devices-panel", outputDevicesPanel);
+
+        DeviceParent.Children.Add(devicePanel);
+        SetDevice(devicePanel, device);
+    }
+
+    bool SetDevice(StackPanel devicePanel, AudioDevice device)
+    {
+        if (device is null)
+        {
+            Debug.WriteErrorLine("Device is null");
+            return false;
+        }
+
+        ComboBox nameDropdown = devicePanel.FindControl<ComboBox>("name");
+        nameDropdown.SelectedValue = device.Info.name;
+        nameDropdown.ItemsSource = AudioUtils.GetDeviceNames();
+        
+        nameDropdown.SelectionChanged += (sender, e) =>
+        {
+            if (nameDropdown.SelectedValue is string selectedName)
+            {
+                device.SetDevice(selectedName);
+                nameDropdown.SelectedValue = device.Info.name;
+            }
+        };
+
+        StackPanel inputOptionsPanel = devicePanel.FindControl<StackPanel>("input-options-panel");
+        StackPanel outputOptionsPanel = devicePanel.FindControl<StackPanel>("output-options-panel");
+
+        CheckBox enableInput = devicePanel.FindControl<CheckBox>("enable-input");
+        CheckBox enableOutput = devicePanel.FindControl<CheckBox>("enable-output");
+
+        enableInput.IsChecked = device.IsInputMuted == false;
+        enableOutput.IsChecked = device.IsOutputMuted == false;
+
+        enableOutput.PropertyChanged += (sender, e) =>
+        {
+            device.IsOutputMuted = !enableOutput.IsChecked.GetValueOrDefault();
+        };
+
+        Slider inputVolumeSlider = devicePanel.FindControl<Slider>("input-volume-slider");
+        inputVolumeSlider.Value = device.InputVolume;
+        inputVolumeSlider.PropertyChanged += (sender, e) =>
+        {
+            device.SetInputVolume((float)inputVolumeSlider.Value);
+        };
+
+        StackPanel outputDevicesPanel = devicePanel.FindControl<StackPanel>("output-devices-panel");
+        outputDevicesPanel.Children.Clear();
+
+        UpdateDevices();
+
+        return true;
+    }
+
+    private void UpdateDevices()
+    {
+        StackPanel[] devicePanels = DeviceParent.Children.OfType<StackPanel>().ToArray();
+        foreach (StackPanel devicePanel in devicePanels)
+        {
+            StackPanel outputDevicesPanel = devicePanel.FindControl<StackPanel>("output-devices-panel");
+            outputDevicesPanel.Children.Clear();
+
+            foreach (AudioDevice device in AudioDevice.ActiveDevices.Values)
+            {
+                CheckBox sendAudioCheck = new CheckBox
+                {
+                    Content = $"Send input to {device.Info.name}",
+                    Margin = new Avalonia.Thickness(5),
+                    Padding = new Avalonia.Thickness(10, 5),
+                };
+
+                outputDevicesPanel.Children.Add(sendAudioCheck);
+
+                sendAudioCheck.IsCheckedChanged += (sender, e) =>
+                {
+                    bool enable = sendAudioCheck.IsChecked.GetValueOrDefault();
+
+                    if (device == AudioDevice.ActiveDevices[devicePanel.Name])
+                    {
+                        device.MonitorOwnInput = enable;
+                    }
+                    else
+                    {
+                        if (enable)
+                            AudioDevice.ConnectDevices(AudioDevice.ActiveDevices[devicePanel.Name], device);
+                        else
+                            AudioDevice.DisconnectDevices(AudioDevice.ActiveDevices[devicePanel.Name], device);
+                    }
+                };
+                
+            }
+        }
     }
 
     private void OnExit(object? sender, EventArgs e)
@@ -288,8 +369,7 @@ public partial class MainWindow : Window
 
     private void SaveState()
     {
-        AudioDeviceData[] deviceDatas = AudioDeviceData.Get();
-        AudioDeviceData.Save("devices.json", deviceDatas);
+        AudioDeviceData.Save("devices.json");
     }
 
     private bool LoadState()
