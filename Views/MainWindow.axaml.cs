@@ -75,6 +75,9 @@ public partial class MainWindow : Window
         DirectoryInfo[] subDirs = dir.GetDirectories();
         FileInfo[] files = dir.GetFiles();
 
+        Array.Sort(subDirs, (a, b) => a.Name.CompareTo(b.Name));
+        Array.Sort(files, (a, b) => a.Name.CompareTo(b.Name));
+
         foreach (DirectoryInfo subDir in subDirs)
         {
             Button dirButton = new Button
@@ -103,11 +106,22 @@ public partial class MainWindow : Window
                 Padding = new Avalonia.Thickness(10, 5),
             };
 
+            Button stopBtn = new Button()
+            {
+                Content = "⏹",
+                IsVisible = false,
+                ContextMenu = new ContextMenu(),
+                Margin = new Avalonia.Thickness(5),
+                Padding = new Avalonia.Thickness(10, 5),
+            };
+
             panel.Children.Add(playPauseButton);
+            panel.Children.Add(stopBtn);
 
             playPauseButton.Click += async (sender, e) =>
             {
-                foreach (AudioDevice device in DictionaryUtils.GetValues(AudioDevice.ActiveDevices))
+                AudioDevice[] audioDevices = DictionaryUtils.GetValues(AudioDevice.ActiveDevices);
+                foreach (AudioDevice device in audioDevices)
                 {
                     AudioClip clip = null;
 
@@ -122,39 +136,59 @@ public partial class MainWindow : Window
 
 
                     string playerId = $"{device.Info.name} - {clip.Name}";
-                    if (audioPlayerDic.TryGetValue(playerId, out AudioPlayer player))
+                    AudioPlayer player = null!;
+                    if (audioPlayerDic.TryGetValue(playerId, out player) == false)
                     {
-                        if (player.IsPlaying)
-                        {
-                            player.Pause();
-                        }
-                        else
-                        {
-                            Console.WriteLine($"playing {playerId}");
-                            player.Play();
-                        }
-                    }
-                    else
-                    {
-                        AudioPlayer newPlayer = new AudioPlayer(clip);
-                        newPlayer.OnStateChanged += (string state) =>
+                        player = new AudioPlayer(clip);
+                        player.OnStateChanged += (string state) =>
                         {
                             Dispatcher.UIThread.Post(() =>
                             {
-                                if (state == "play")
-                                    playPauseButton.Content = Text.PAUSE_SYMBOL;
-                                else if (state == "pause" || state == "end")
-                                    playPauseButton.Content = Text.PLAY_SYMBOL;
-                                else
-                                    playPauseButton.Content = "!";
+                                switch (state)
+                                {
+                                    case "play":
+                                        playPauseButton.Content = Text.PAUSE_SYMBOL;
+                                        stopBtn.IsVisible = true;
+                                        break;
+                                    case "pause":
+                                        playPauseButton.Content = Text.PLAY_SYMBOL;
+                                        stopBtn.IsVisible = true;
+                                        break;
+                                    case "stop":
+                                        playPauseButton.Content = Text.PLAY_SYMBOL;
+                                        stopBtn.IsVisible = false;
+                                        break;
+                                    default:
+                                        Debug.WriteErrorLine($"{state} is not a valid state for AudioPlayer");
+                                        break;
+                                }
                             });
+
                         };
 
-                        Console.WriteLine($"playing {playerId}");
-                        audioPlayerDic[playerId] = newPlayer;
+                        audioPlayerDic[playerId] = player;
+                        device.audioPlayers.Add(player);
+                    }
 
-                        device.audioPlayers.Add(newPlayer);
-                        newPlayer.Play();
+                    if (player.IsPlaying)
+                        player.Pause();
+                    else
+                        player.Play();
+                }
+            };
+
+            stopBtn.Click += (sender, e) =>
+            {
+                foreach (AudioDevice device in DictionaryUtils.GetValues(AudioDevice.ActiveDevices))
+                {
+                    string soundId = $"{file.Name}:{device.Info.defaultSampleRate}";
+                    if (audioClipCache.TryGetValue(soundId, out AudioClip clip) == false)
+                        continue;
+
+                    string playerId = $"{device.Info.name} - {clip.Name}";
+                    if (audioPlayerDic.TryGetValue(playerId, out AudioPlayer player))
+                    {
+                        player.Stop();
                     }
                 }
             };
@@ -187,7 +221,7 @@ public partial class MainWindow : Window
 
         UpdateNewDeviceDropdown();
 
-        if(AudioDevice.GetDevice(name, out AudioDevice device))
+        if (AudioDevice.GetDevice(name, out AudioDevice device))
             AddNewDevice(device);
     }
     void AddNewDevice(AudioDevice device)
@@ -198,58 +232,58 @@ public partial class MainWindow : Window
         };
 
         StackPanel optionsPanel = new StackPanel { Orientation = Orientation.Vertical };
-        StackPanel inputOptionsPanel = new StackPanel 
-        { 
+        StackPanel inputOptionsPanel = new StackPanel
+        {
             Name = "input-options-panel",
-            Orientation = Orientation.Vertical 
+            Orientation = Orientation.Vertical
         };
 
-        StackPanel outputOptionsPanel = new StackPanel 
-        { 
+        StackPanel outputOptionsPanel = new StackPanel
+        {
             Name = "output-options-panel",
-            Orientation = Orientation.Vertical 
-            };
+            Orientation = Orientation.Vertical
+        };
 
         optionsPanel.Children.Add(inputOptionsPanel);
         optionsPanel.Children.Add(outputOptionsPanel);
 
-        CheckBox enableInput = new CheckBox 
-        { 
+        CheckBox enableInput = new CheckBox
+        {
             Name = "enable-input",
-            Content = "Enable Input", 
-            Margin = new Avalonia.Thickness(5), 
+            Content = "Enable Input",
+            Margin = new Avalonia.Thickness(5),
         };
 
         inputOptionsPanel.Children.Add(enableInput);
 
-        Slider inputVolumeSlider = new Slider 
-        { 
+        Slider inputVolumeSlider = new Slider
+        {
             Name = "input-volume-slider",
-            Minimum = 0, 
-            Maximum = 10, 
-            Margin = new Avalonia.Thickness(5) 
+            Minimum = 0,
+            Maximum = 10,
+            Margin = new Avalonia.Thickness(5)
         };
         inputOptionsPanel.Children.Add(inputVolumeSlider);
 
-        CheckBox enableOutput = new CheckBox 
-        { 
+        CheckBox enableOutput = new CheckBox
+        {
             Name = "enable-output",
-            Content = "Enable Output", 
-            Margin = new Avalonia.Thickness(5), 
+            Content = "Enable Output",
+            Margin = new Avalonia.Thickness(5),
         };
         outputOptionsPanel.Children.Add(enableOutput);
 
-        StackPanel outputDevicesPanel = new StackPanel 
-        { 
+        StackPanel outputDevicesPanel = new StackPanel
+        {
             Name = "output-devices-panel",
-            Orientation = Orientation.Vertical 
+            Orientation = Orientation.Vertical
         };
         outputOptionsPanel.Children.Add(outputDevicesPanel);
 
         StackPanel devicePanel = new StackPanel
         {
             Name = device.Info.name,
-            Classes = {"AudioDevice"},
+            Classes = { "AudioDevice" },
             Children =
             {
                 nameDropdown,
@@ -283,7 +317,7 @@ public partial class MainWindow : Window
         ComboBox nameDropdown = devicePanel.FindControl<ComboBox>("name");
         nameDropdown.SelectedValue = device.Info.name;
         nameDropdown.ItemsSource = AudioUtils.GetDeviceNames();
-        
+
         nameDropdown.SelectionChanged += (sender, e) =>
         {
             if (nameDropdown.SelectedValue is string selectedName)
@@ -357,7 +391,7 @@ public partial class MainWindow : Window
                             AudioDevice.DisconnectDevices(AudioDevice.ActiveDevices[devicePanel.Name], device);
                     }
                 };
-                
+
             }
         }
     }
@@ -380,7 +414,7 @@ public partial class MainWindow : Window
 
         foreach (AudioDeviceData deviceData in deviceDatas)
         {
-            if(!AudioDevice.GetDevice(deviceData.Name, out AudioDevice device))
+            if (!AudioDevice.GetDevice(deviceData.Name, out AudioDevice device))
                 continue;
 
             device.SetInputVolume(deviceData.InputVolume);
