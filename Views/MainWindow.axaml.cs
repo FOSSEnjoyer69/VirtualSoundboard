@@ -18,6 +18,7 @@ using CSharpAlgorithms.Audio;
 using CSharpAlgorithms.Collection;
 using CSharpAlgorithms.GC;
 using CSharpAlgorithms.Interfaces;
+using CSharpAlgorithms.Networking;
 using Debug = CSharpAlgorithms.Debug;
 
 namespace VirtualSoundboard.Views;
@@ -26,10 +27,10 @@ public partial class MainWindow : Window
 {
     private static BleepPlayer bleepPlayer = new BleepPlayer();
 
-    private static Dictionary<string, AudioClip> audioClipCache = [];
-    private static Dictionary<string, AudioPlayer> audioPlayerDic = [];
-
     static DirectoryInfo audioClipDir = new DirectoryInfo("Audio Clips");
+
+    SoundBoard m_soundboard;
+    SoundboardWebuiServer soundboardWebuiServer;
 
     public MainWindow()
     {
@@ -45,156 +46,18 @@ public partial class MainWindow : Window
         if (!audioClipDir.Exists)
             audioClipDir.Create();
 
-        LoadDirectory(audioClipDir);
+
+        m_soundboard = new SoundBoard(SoundBoard, audioClipDir);
+
+        soundboardWebuiServer = new SoundboardWebuiServer(m_soundboard);
+        soundboardWebuiServer.Start();
+
         LoadState();
         UpdateNewDeviceDropdown();
 
         Closed += OnExit;
 
         AddDeviceButton.Click += (sender, e) => AddNewDevice(NewDeviceDropdown.SelectedItem as string);
-    }
-
-    void LoadDirectory(DirectoryInfo dir)
-    {
-        SoundBoard.Children.Clear();
-
-        if (dir != audioClipDir)
-        {
-            Button previousDirButton = new Button
-            {
-                Content = "<-",
-                ContextMenu = new ContextMenu(),
-                Margin = new Avalonia.Thickness(5),
-                Padding = new Avalonia.Thickness(10, 5),
-            };
-            previousDirButton.Click += (sender, e) => LoadDirectory(dir.Parent);
-
-            SoundBoard.Children.Add(previousDirButton);
-        }
-
-        DirectoryInfo[] subDirs = dir.GetDirectories();
-        FileInfo[] files = dir.GetFiles();
-
-        Array.Sort(subDirs, (a, b) => a.Name.CompareTo(b.Name));
-        Array.Sort(files, (a, b) => a.Name.CompareTo(b.Name));
-
-        foreach (DirectoryInfo subDir in subDirs)
-        {
-            Button dirButton = new Button
-            {
-                Content = subDir.Name,
-                ContextMenu = new ContextMenu(),
-                Margin = new Avalonia.Thickness(5),
-                Padding = new Avalonia.Thickness(10, 5),
-            };
-            dirButton.Click += (sender, e) => LoadDirectory(subDir);
-
-            SoundBoard.Children.Add(dirButton);
-        }
-
-        foreach (FileInfo file in files)
-        {
-            StackPanel panel = new StackPanel { Orientation = Orientation.Horizontal };
-            Label label = new Label { Content = file.Name, Margin = new Avalonia.Thickness(5), VerticalAlignment = VerticalAlignment.Center };
-            panel.Children.Add(label);
-
-            Button playPauseButton = new Button
-            {
-                Content = "▶",
-                ContextMenu = new ContextMenu(),
-                Margin = new Avalonia.Thickness(5),
-                Padding = new Avalonia.Thickness(10, 5),
-            };
-
-            Button stopBtn = new Button()
-            {
-                Content = "⏹",
-                IsVisible = false,
-                ContextMenu = new ContextMenu(),
-                Margin = new Avalonia.Thickness(5),
-                Padding = new Avalonia.Thickness(10, 5),
-            };
-
-            panel.Children.Add(playPauseButton);
-            panel.Children.Add(stopBtn);
-
-            playPauseButton.Click += async (sender, e) =>
-            {
-                AudioDevice[] audioDevices = DictionaryUtils.GetValues(AudioDevice.ActiveDevices);
-                foreach (AudioDevice device in audioDevices)
-                {
-                    AudioClip clip = null;
-
-                    string soundId = $"{file.Name}:{device.Info.defaultSampleRate}";
-                    if (audioClipCache.ContainsKey(soundId))
-                        clip = audioClipCache[soundId];
-                    else
-                    {
-                        clip = await AudioClip.FromMP3File(file.FullName, (int)device.Info.defaultSampleRate);
-                        audioClipCache[soundId] = clip;
-                    }
-
-
-                    string playerId = $"{device.Info.name} - {clip.Name}";
-                    AudioPlayer player = null!;
-                    if (audioPlayerDic.TryGetValue(playerId, out player) == false)
-                    {
-                        player = new AudioPlayer(clip);
-                        player.OnStateChanged += (string state) =>
-                        {
-                            Dispatcher.UIThread.Post(() =>
-                            {
-                                switch (state)
-                                {
-                                    case "play":
-                                        playPauseButton.Content = Text.PAUSE_SYMBOL;
-                                        stopBtn.IsVisible = true;
-                                        break;
-                                    case "pause":
-                                        playPauseButton.Content = Text.PLAY_SYMBOL;
-                                        stopBtn.IsVisible = true;
-                                        break;
-                                    case "stop":
-                                        playPauseButton.Content = Text.PLAY_SYMBOL;
-                                        stopBtn.IsVisible = false;
-                                        break;
-                                    default:
-                                        Debug.WriteErrorLine($"{state} is not a valid state for AudioPlayer");
-                                        break;
-                                }
-                            });
-
-                        };
-
-                        audioPlayerDic[playerId] = player;
-                        device.audioPlayers.Add(player);
-                    }
-
-                    if (player.IsPlaying)
-                        player.Pause();
-                    else
-                        player.Play();
-                }
-            };
-
-            stopBtn.Click += (sender, e) =>
-            {
-                foreach (AudioDevice device in DictionaryUtils.GetValues(AudioDevice.ActiveDevices))
-                {
-                    string soundId = $"{file.Name}:{device.Info.defaultSampleRate}";
-                    if (audioClipCache.TryGetValue(soundId, out AudioClip clip) == false)
-                        continue;
-
-                    string playerId = $"{device.Info.name} - {clip.Name}";
-                    if (audioPlayerDic.TryGetValue(playerId, out AudioPlayer player))
-                    {
-                        player.Stop();
-                    }
-                }
-            };
-
-            SoundBoard.Children.Add(panel);
-        }
     }
 
     void UpdateNewDeviceDropdown()
@@ -222,10 +85,14 @@ public partial class MainWindow : Window
         UpdateNewDeviceDropdown();
 
         if (AudioDevice.GetDevice(name, out AudioDevice device))
+        {
             AddNewDevice(device);
+        }
     }
     void AddNewDevice(AudioDevice device)
     {
+        m_soundboard.outputAudioDevices.Add(device);
+
         ComboBox nameDropdown = new ComboBox()
         {
             Name = "name",
@@ -391,7 +258,6 @@ public partial class MainWindow : Window
                             AudioDevice.DisconnectDevices(AudioDevice.ActiveDevices[devicePanel.Name], device);
                     }
                 };
-
             }
         }
     }

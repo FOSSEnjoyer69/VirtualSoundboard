@@ -1,0 +1,14 @@
+To fix
+    previous button does not appear after the ui format
+    multiple sound ids are created in the webui
+    some mono sounds are not properly resampled
+    some sounds are played slower than they should
+
+To Add
+    Sound directory caching
+    Better webui and dgui styling
+    settings menu
+    central styling (for both, webui and dgui)
+
+To improve
+    Soundboard.cs
