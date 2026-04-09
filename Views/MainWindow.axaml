@@ -12,34 +12,19 @@
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-
+    
+    <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <Grid RowDefinitions="Auto,*">
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Label>Devices</Label>
+        <Grid ColumnDefinitions="Auto, *, Auto">
+            <StackPanel Grid.Column="0" x:Name="CaptureDevicesParent" Orientation="Vertical" Margin="12" Background="DarkBlue"></StackPanel>
+            <StackPanel Grid.Column="1"></StackPanel>
+            <StackPanel Grid.Column="2" x:Name="PlaybackDevicesParent" Orientation="Vertical" Margin="12" Background="DarkRed"></StackPanel>
+        </Grid>
 
-            <StackPanel x:Name="DeviceParent"
-                        Orientation="Horizontal" />
-
-            <StackPanel Orientation="Vertical">
-                <ComboBox x:Name="NewDeviceDropdown" Width="200"/>
-                <Button x:Name="AddDeviceButton">+</Button>
-            </StackPanel>
-        </StackPanel>
-
-        <Border Grid.Row="1"
-                Padding="16"
-                Margin="12"
-                CornerRadius="8"
-                BorderThickness="2"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch">
-            <ScrollViewer HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          HorizontalScrollBarVisibility="Disabled"
-                          VerticalScrollBarVisibility="Auto">
-                <WrapPanel x:Name="SoundBoard"
-                           Orientation="Horizontal" />
-            </ScrollViewer>
-        </Border>
-    </Grid>
+        <Border x:Name="SoundboardParent"
+                Grid.Row="1" Padding="16" Margin="12" CornerRadius="8" BorderThickness="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <WrapPanel x:Name="SoundBoard" Orientation="Horizontal"/>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </Window>
