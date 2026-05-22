@@ -19,7 +19,6 @@ using CSharpAlgorithms.Collection;
 using CSharpAlgorithms.GC;
 using CSharpAlgorithms.Interfaces;
 using CSharpAlgorithms.Networking;
-using Debug = CSharpAlgorithms.Debug;
 using SoundFlow.Abstracts;
 using SoundFlow.Abstracts.Devices;
 using SoundFlow.Backends.MiniAudio;
@@ -70,42 +69,14 @@ public partial class MainWindow : Window
         soundboardWebuiServer = new SoundboardWebuiServer(m_soundboard);
         // soundboardWebuiServer.Start();
 
-        LoadState();
-
         normalSoundBoardParentBackground = SoundboardParent.Background;
 
-        Closed += OnExit;
+        // Closed += OnExit;
     }
 
     private void OnExit(object? sender, EventArgs e)
     {
-        SaveState();
-    }
-
-    private void SaveState()
-    {
-        // AudioDeviceData.Save("devices.json");
-    }
-
-    private bool LoadState()
-    {
-        // AudioDeviceData[] deviceDatas = AudioDeviceData.Load();
-        // if (deviceDatas.Length == 0)
-        //     return false;
-
-        // foreach (AudioDeviceData deviceData in deviceDatas)
-        // {
-
-
-        //     // device.SetInputVolume(deviceData.InputVolume);
-        //     // device.SetOutputVolume(deviceData.OutputVolume);
-        //     // device.IsMuted = deviceData.IsMuted;
-
-        //     // AddNewDevice(device);
-        // }
-
-
-        return true;
+        
     }
 
     private void SetupDeviceMenu(AudioEngine engine)

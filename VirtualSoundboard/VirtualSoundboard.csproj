@@ -39,5 +39,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="SoundFlow" Version="1.4.0" />
     <PackageReference Include="SoundFlow.Codecs.FFMpeg" Version="1.4.0" />
+
+    <ProjectReference Include="../CSharpAlgorithms/CSharpAlgorithms.csproj" />
   </ItemGroup>
 </Project>
